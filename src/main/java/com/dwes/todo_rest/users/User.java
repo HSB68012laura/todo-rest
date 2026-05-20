@@ -32,11 +32,13 @@ public class User implements UserDetails {
     private String password;
 
     @Builder.Default
-    private boolean isAdmin = false;
+    private String role = "USER";
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String role = "ROLE_" + ((isAdmin) ? "ADMIN" : "USER");
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
+
+
 }

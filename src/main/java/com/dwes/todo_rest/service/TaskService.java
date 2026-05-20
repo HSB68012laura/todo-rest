@@ -2,12 +2,16 @@ package com.dwes.todo_rest.service;
 
 import com.dwes.todo_rest.dto.EditTaskCommand;
 import com.dwes.todo_rest.error.TaskNotFoundException;
+import com.dwes.todo_rest.model.Priority;
 import com.dwes.todo_rest.model.Task;
+import com.dwes.todo_rest.repos.TagRepository;
 import com.dwes.todo_rest.repos.TaskRepository;
 import com.dwes.todo_rest.users.User;
+import com.dwes.todo_rest.model.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -15,6 +19,7 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final TagRepository tagRepository;
 
     public List<Task> findAll() {
         List<Task> result = taskRepository.findAll();
@@ -63,5 +68,63 @@ public class TaskService {
             throw new TaskNotFoundException();
 
         return result;
+    }
+
+    public List<Task> findByPriority(User author, String priorityStr) {
+        Priority priority;
+        try {
+            priority = Priority.valueOf(priorityStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Prioridad no válida. Usa: Baja, Media o Alta");
+        }
+        return taskRepository.findByAuthorAndPriority(author, priority);
+    }
+
+    public List<Task> findByTitle(User author, String title) {
+        return taskRepository.findByAuthorAndTitleContainingIgnoreCase(author, title);
+    }
+
+    public List<Task> findByCompleted(User author, boolean completed) {
+        return taskRepository.findByAuthorAndCompleted(author, completed);
+    }
+
+    public List<Task> findOverdueTasks(User author) {
+        return taskRepository.findOverdueTasks(author, LocalDateTime.now());
+    }
+
+    public Task addTagToTask(Long taskId, Long tagId, User author) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Tarea no encontrada"));
+
+        if (!task.getAuthor().getId().equals(author.getId())) {
+            throw new RuntimeException("No tienes permiso para modificar esta tarea");
+        }
+
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag no encontrado"));
+
+        task.getTags().add(tag);
+        return taskRepository.save(task);
+    }
+
+    public Task removeTagFromTask(Long taskId, Long tagId, User author) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Tarea no encontrada"));
+
+        if (!task.getAuthor().getId().equals(author.getId())) {
+            throw new RuntimeException("No tienes permiso para modificar esta tarea");
+        }
+
+        task.getTags().removeIf(tag -> tag.getId().equals(tagId));
+        return taskRepository.save(task);
+    }
+
+    public List<Task> findTasksByTag(Long tagId, User author) {
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag no encontrado"));
+
+        return taskRepository.findByAuthor(author).stream()
+                .filter(task -> task.getTags().contains(tag))
+                .toList();
     }
 }

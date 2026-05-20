@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import com.dwes.todo_rest.model.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.stream;
 
@@ -225,4 +229,53 @@ public class TaskController {
         taskService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Dashboard con estadísticas de tareas")
+    @GetMapping("/dashboard")
+    public ResponseEntity<Map<String, Object>> getDashboard(@AuthenticationPrincipal User author) {
+        List<Task> tasks = taskService.findByAuthor(author);
+
+        long total = tasks.size();
+        long completed = tasks.stream().filter(Task::isCompleted).count();
+        long pending = total - completed;
+        long overdue = tasks.stream()
+                .filter(t -> !t.isCompleted() && t.getDeadline() != null && t.getDeadline().isBefore(LocalDateTime.now()))
+                .count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalTasks", total);
+        stats.put("completedTasks", completed);
+        stats.put("pendingTasks", pending);
+        stats.put("overdueTasks", overdue);
+
+        return ResponseEntity.ok(stats);
+    }
+
+    @Operation(summary = "Asignar un tag a una tarea")
+    @PostMapping("/{taskId}/tags/{tagId}")
+    public ResponseEntity<Task> addTagToTask(@PathVariable Long taskId, @PathVariable Long tagId, @AuthenticationPrincipal User author) {
+        return ResponseEntity.ok(taskService.addTagToTask(taskId, tagId, author));
+    }
+
+    @Operation(summary = "Eliminar un tag de una tarea")
+    @DeleteMapping("/{taskId}/tags/{tagId}")
+    public ResponseEntity<Task> removeTagFromTask(@PathVariable Long taskId, @PathVariable Long tagId, @AuthenticationPrincipal User author) {
+        return ResponseEntity.ok(taskService.removeTagFromTask(taskId, tagId, author));
+    }
+
+    @Operation(summary = "Buscar tareas por tag")
+    @GetMapping("/by-tag")
+    public List<Task> findTasksByTag(@RequestParam Long tagId, @AuthenticationPrincipal User author) {
+        return taskService.findTasksByTag(tagId, author);
+    }
+
+    @GetMapping("/search/by-priority")
+    public List<Task> searchByPriority(@RequestParam String priority, @AuthenticationPrincipal User author) {
+        return taskService.findByPriority(author, priority);
+    }
+    @GetMapping("/search/by-title")
+    public List<Task> searchByTitle(@RequestParam String title, @AuthenticationPrincipal User author) {
+        return taskService.findByTitle(author, title);
+    }
+
 }

@@ -5,6 +5,9 @@ import com.dwes.todo_rest.users.NewUserResponse;
 
 import java.time.LocalDateTime;
 
+/*DTO para la salida de datos de una tarea. Evita exponer la entidad Taks JPA y oculta información
+sensible
+ */
 public record GetTaskDto(
         Long id,
         String title,

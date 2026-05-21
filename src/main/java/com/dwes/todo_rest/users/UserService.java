@@ -16,7 +16,8 @@ public class UserService {
                 .username(cmd.username())
                 .email(cmd.email())
                 .password(passwordEncoder.encode(cmd.password()))
-                .isAdmin(false)
+                //.isAdmin(false)  --> se comenta para la actividad de daw
+                .role("USER") //se añade USER por defecto
                 .build();
         return userRepository.save(user);
     }

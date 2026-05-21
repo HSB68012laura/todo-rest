@@ -10,5 +10,7 @@ INSERT INTO task (created_at, deadline, id, title, priority, description) VALUES
 INSERT INTO user_entity (id, email, username, password, rol) VALUES (NEXTVAL('user_entity_seq'), 'laura@dwes.net','laura','{noop}12345','USER');
 INSERT INTO user_entity (id, email, username, password, rol) VALUES (NEXTVAL('user_entity_seq'), 'admin@dewes.net','admin','{noop}12345','ADMIN');
 INSERT INTO user_entity (id, email, username, password, rol) VALUES (NEXTVAL('user_entity_seq'), 'gestor@dewes.net','gestor','{noop}12345','GESTOR');
+INSERT INTO user_entity (id, email, username, password, role) VALUES
+    (5, 'user@test.com', 'user', '{noop}1234', 'USER');
 
 UPDATE task SET author_id = CURRVAL('user_entity_seq');

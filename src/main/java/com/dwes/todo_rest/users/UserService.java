@@ -16,7 +16,8 @@ public class UserService {
                 .username(cmd.username())
                 .email(cmd.email())
                 .password(passwordEncoder.encode(cmd.password()))
-                .isAdmin(false)
+                //.isAdmin(false) .--> Comento esta linea porque me da fallo en la tarea de DAW
+                 .role("USER")  //Esta linea la añado para que no me falle el quitar la anterior
                 .build();
         return userRepository.save(user);
     }

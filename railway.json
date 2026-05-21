@@ -1,9 +1,10 @@
 {
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "mvn clean package -DskipTests"
   },
   "deploy": {
-    "startCommand": "java -jar target/*.jar",
+    "startCommand": "java -jar target/todo-rest-0.0.1-SNAPSHOT.jar",
     "healthcheckPath": "/actuator/health"
   }
 }

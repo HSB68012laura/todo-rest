@@ -3,6 +3,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "java -jar target/*.jar"
+    "startCommand": "java -jar target/*.jar",
+    "healthcheckPath": "/actuator/health"
   }
 }

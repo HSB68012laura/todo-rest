@@ -2,8 +2,10 @@ package com.dwes.todo_rest.service;
 
 import com.dwes.todo_rest.dto.EditTaskCommand;
 import com.dwes.todo_rest.error.TaskNotFoundException;
+import com.dwes.todo_rest.model.Category;
 import com.dwes.todo_rest.model.Priority;
 import com.dwes.todo_rest.model.Task;
+import com.dwes.todo_rest.repos.CategoryRepository;
 import com.dwes.todo_rest.repos.TagRepository;
 import com.dwes.todo_rest.repos.TaskRepository;
 import com.dwes.todo_rest.users.User;
@@ -20,6 +22,7 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final TagRepository tagRepository;
+    private final CategoryRepository categoryRepository;
 
     public List<Task> findAll() {
         List<Task> result = taskRepository.findAll();
@@ -36,12 +39,26 @@ public class TaskService {
     }
 
     public Task save(EditTaskCommand command, User author) {
+        Priority priority;
+        try {
+            priority = Priority.valueOf(command.priority().toUpperCase());
+        }
+        catch (IllegalArgumentException e) {
+            priority = Priority.BAJA;
+        }
+        Category category = null;
+        if (command.categoryId() != null) {
+            category = categoryRepository.findById(command.categoryId())
+                    .orElseThrow(() -> new RuntimeException("No se ha encontrado la categoría"));
+        }
         return taskRepository.save(
                 Task.builder()
-                        .title(command.description())
+                        .title(command.title())
                         .description(command.description())
                         .deadline(command.deadline())
                         .author(author)
+                        .category(category)
+                        .priority(priority)
                         .build()
         );
     }
@@ -52,9 +69,21 @@ public class TaskService {
                     t.setTitle(cmd.title());
                     t.setDescription(cmd.description());
                     t.setDeadline(cmd.deadline());
-                    return taskRepository.save(t);
-                })
-                .orElseThrow(()-> new TaskNotFoundException(id));
+
+                    if (cmd.priority() != null && !cmd.priority().isEmpty()){
+                        try {
+                            t.setPriority(Priority.valueOf(cmd.priority().toUpperCase()));
+                        } catch (IllegalArgumentException e) {
+                        }
+                }
+                if (cmd.categoryId() != null) {
+                    Category category = categoryRepository.findById(cmd.categoryId())
+                            .orElseThrow(() -> new RuntimeException("No se ha encontrado la categoría"));
+                    t.setCategory(category);
+                }
+                return taskRepository.save(t);
+        })
+            .orElseThrow(()-> new TaskNotFoundException(id));
     }
 
     public void delete(Long id) {

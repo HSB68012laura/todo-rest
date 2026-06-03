@@ -5,6 +5,7 @@ import com.dwes.todo_rest.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,6 +54,10 @@ public class Task {
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private List<Tag> tags = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 
 
 }

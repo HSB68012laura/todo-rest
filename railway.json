@@ -5,6 +5,5 @@
   },
   "deploy": {
     "startCommand": "java -jar target/todo-rest-0.0.1-SNAPSHOT.jar",
-    "healthcheckPath": "/actuator/health"
   }
 }

@@ -1,6 +1,7 @@
 package com.dwes.todo_rest.repos;
 
 
+import com.dwes.todo_rest.model.Category;
 import com.dwes.todo_rest.model.Priority;
 import com.dwes.todo_rest.model.Task;
 //import com.dwes.todo_rest.users.User;
@@ -20,6 +21,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByAuthorAndPriority(User author, Priority priority);
 
     List<Task>findByAuthorAndTitleContainingIgnoreCase(User author, String title);
+
+    List<Task> findByAuthorAndCategory(User author, Category category);
 
     @Query("SELECT t FROM Task t WHERE t.author = :author AND t.deadline < :now AND t.completed = false")
     List<Task> findOverdueTasks(@Param("author") User author, @Param("now") LocalDateTime now);

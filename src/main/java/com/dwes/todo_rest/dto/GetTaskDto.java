@@ -15,9 +15,11 @@ public record GetTaskDto(
         LocalDateTime createdAt,
         LocalDateTime deadline,
         String priority,
+        boolean completed,
         NewUserResponse author
 
-) {
+
+        ) {
     public static GetTaskDto of(Task t) {
         return new GetTaskDto(
                 t.getId(),
@@ -26,6 +28,7 @@ public record GetTaskDto(
                 t.getCreatedAt(),
                 t.getDeadline(),
                 t.getPriority().name(),
+                t.isCompleted(),
                 NewUserResponse.of(t.getAuthor())
         );
     }

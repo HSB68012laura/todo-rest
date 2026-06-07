@@ -81,6 +81,9 @@ public class TaskService {
                             .orElseThrow(() -> new RuntimeException("No se ha encontrado la categoría"));
                     t.setCategory(category);
                 }
+                    if (cmd.completed() != null) {
+                        t.setCompleted(cmd.completed());
+                    }
                 return taskRepository.save(t);
         })
             .orElseThrow(()-> new TaskNotFoundException(id));
@@ -115,6 +118,12 @@ public class TaskService {
 
     public List<Task> findByCompleted(User author, boolean completed) {
         return taskRepository.findByAuthorAndCompleted(author, completed);
+    }
+
+    public List<Task> findByCategory(User author, Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+        return taskRepository.findByAuthorAndCategory(author, category);
     }
 
     public List<Task> findOverdueTasks(User author) {

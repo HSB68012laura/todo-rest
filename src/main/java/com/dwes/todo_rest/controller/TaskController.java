@@ -269,6 +269,24 @@ public class TaskController {
         return taskService.findTasksByTag(tagId, author);
     }
 
+    @Operation(summary = "Buscar tareas por estado")
+    @GetMapping("search/by-completed")
+    public List<GetTaskDto> searchByCompleted(@RequestParam boolean completed, @AuthenticationPrincipal User author) {
+        return taskService.findByCompleted(author, completed)
+                .stream()
+                .map(GetTaskDto::of)
+                .toList();
+    }
+
+    @Operation(summary = "Buscar tareas por categoría")
+    @GetMapping("/search/by-category")
+    public List<GetTaskDto> searchByCategory(@RequestParam Long categoryId, @AuthenticationPrincipal User author) {
+        return taskService.findByCategory(author, categoryId)
+                .stream()
+                .map(GetTaskDto::of)
+                .toList();
+    }
+
     @GetMapping("/search/by-priority")
     public List<Task> searchByPriority(@RequestParam String priority, @AuthenticationPrincipal User author) {
         return taskService.findByPriority(author, priority);
@@ -277,5 +295,6 @@ public class TaskController {
     public List<Task> searchByTitle(@RequestParam String title, @AuthenticationPrincipal User author) {
         return taskService.findByTitle(author, title);
     }
+
 
 }

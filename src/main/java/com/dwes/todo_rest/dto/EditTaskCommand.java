@@ -13,7 +13,8 @@ public record EditTaskCommand(
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime deadline,
         String priority,
-        Long categoryId
+        Long categoryId,
+        Boolean completed
 
 ) {
 }

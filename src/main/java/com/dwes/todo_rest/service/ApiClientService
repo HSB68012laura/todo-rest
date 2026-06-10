@@ -1,0 +1,28 @@
+package com.dwes.todo.service;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+@Service
+public class ApiClientService {
+
+    @Value("${todo.rest.url}")
+    private String apiUrl;
+
+    private final RestTemplate restTemplate;
+
+    public ApiClientService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    public void registerUser(String username, String email, String password) {
+        String url = apiUrl + "/auth/register";
+        
+        RegisterRequest request = new RegisterRequest(username, email, password);
+        restTemplate.postForObject(url, request, Object.class);
+    }
+
+    // DTO para la petición
+    record RegisterRequest(String username, String email, String password) {}
+}

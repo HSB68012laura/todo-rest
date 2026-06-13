@@ -1,4 +1,4 @@
-INSERT INTO user_entity (id, email, username, password, role) VALUES (NEXTVAL('user_entity_seq'), 'laura@dwes.net', 'laura', '{noop}12345', 'USER');
+/*INSERT INTO user_entity (id, email, username, password, role) VALUES (NEXTVAL('user_entity_seq'), 'laura@dwes.net', 'laura', '{noop}12345', 'USER');
 INSERT INTO user_entity (id, email, username, password, role) VALUES (NEXTVAL('user_entity_seq'), 'admin@dewes.net', 'admin', '{noop}admin123', 'ADMIN');
 INSERT INTO user_entity (id, email, username, password, role) VALUES (NEXTVAL('user_entity_seq'), 'gestor@dewes.net', 'gestor', '{noop}gestor123', 'GESTOR');
 INSERT INTO user_entity (id, email, username, password, role) VALUES (5, 'user@test.com', 'user', '{noop}1234', 'USER');
@@ -11,4 +11,4 @@ INSERT INTO task (created_at, deadline, id, title, priority, description, comple
 INSERT INTO task (created_at, deadline, id, title, priority, description, completed) VALUES (CURRENT_TIMESTAMP, TIMESTAMPADD(DAY, 226, CURRENT_TIMESTAMP), NEXTVAL('task_seq'), 'GlutenApp', 'BAJA', 'Terminar la aplicación de GlutenApp.', false);
 INSERT INTO task (created_at, deadline, id, title, priority, description, completed) VALUES (CURRENT_TIMESTAMP, TIMESTAMPADD(DAY, 13, CURRENT_TIMESTAMP), NEXTVAL('task_seq'), 'Lavadero', 'BAJA', 'Llevar el coche a lavar', false);
 
-UPDATE task SET author_id = (SELECT id FROM user_entity WHERE username = 'laura');
+UPDATE task SET author_id = (SELECT id FROM user_entity WHERE username = 'laura');*/

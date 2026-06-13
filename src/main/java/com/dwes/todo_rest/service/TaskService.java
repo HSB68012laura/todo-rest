@@ -25,12 +25,7 @@ public class TaskService {
     private final CategoryRepository categoryRepository;
 
     public List<Task> findAll() {
-        List<Task> result = taskRepository.findAll();
-
-        if (result.isEmpty())
-            throw new TaskNotFoundException();
-
-        return result;
+        return taskRepository.findAll();
     }
 
     public Task findById(Long id) {
@@ -94,12 +89,7 @@ public class TaskService {
     }
 
     public List<Task> findByAuthor(User author) {
-        List<Task> result = taskRepository.findByAuthor(author);
-
-        if (result.isEmpty())
-            throw new TaskNotFoundException();
-
-        return result;
+        return taskRepository.findByAuthor(author);
     }
 
     public List<Task> findByPriority(User author, String priorityStr) {

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 public class AdminController {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Operation(summary = "Listar todos los usuarios")
     @GetMapping("/users")
@@ -36,6 +38,7 @@ public class AdminController {
     @PostMapping("/users")
     public ResponseEntity<User> createUser(@RequestBody User user) {
         user.setId(null);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user));
     }
 
@@ -46,7 +49,10 @@ public class AdminController {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         existing.setUsername(user.getUsername());
         existing.setEmail(user.getEmail());
-        existing.setPassword(user.getPassword());
+         //Solo la encripta si la contrasña cambió y no está vacia
+        if(user.getPassword() !=null && !user.getPassword().isEmpty()){
+            existing.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         existing.setRole(user.getRole());
         return userRepository.save(existing);
     }

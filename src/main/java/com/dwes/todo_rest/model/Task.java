@@ -32,7 +32,7 @@ public class Task {
 
     private String title;
 
-    @Lob
+    @Column(length = 1000)
     private String description;
 
     private LocalDateTime deadline;
@@ -53,6 +53,7 @@ public class Task {
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
+    @Builder.Default
     private List<Tag> tags = new ArrayList<>();
 
     @ManyToOne

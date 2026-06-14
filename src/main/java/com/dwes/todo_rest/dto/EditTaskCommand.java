@@ -14,7 +14,8 @@ public record EditTaskCommand(
         LocalDateTime deadline,
         String priority,
         Long categoryId,
-        Boolean completed
+        Boolean completed,
+        String tags
 
 ) {
 }

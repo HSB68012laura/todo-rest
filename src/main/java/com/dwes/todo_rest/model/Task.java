@@ -47,7 +47,7 @@ public class Task {
     @Builder.Default
     private boolean completed = false;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "task_tags",
             joinColumns = @JoinColumn(name = "task_id"),
@@ -59,6 +59,8 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+
 
 
 }

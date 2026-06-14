@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -78,6 +79,11 @@ public class TaskService {
                 }
                     if (cmd.completed() != null) {
                         t.setCompleted(cmd.completed());
+                    }
+
+                    if (cmd.tags() != null) {
+                        List<Tag> tags = processTags(cmd.tags());
+                        t.setTags(tags);
                     }
                 return taskRepository.save(t);
         })
@@ -154,5 +160,23 @@ public class TaskService {
         return taskRepository.findByAuthorOrderByIdAsc(author).stream()
                 .filter(task -> task.getTags().contains(tag))
                 .toList();
+    }
+
+    private List<Tag> processTags(String tagsStr) {
+        if (tagsStr == null || tagsStr.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        String[] tagNames = tagsStr.split(",");
+        List<Tag> tags = new ArrayList<>();
+        for (String tagName : tagNames) {
+            String cleanTagName = tagName.trim();
+            if (!tagName.isEmpty()) {
+                Tag tag = tagRepository.findByName(tagName)
+                        .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
+                tags.add(tag);
+            }
+        }
+        return tags;
     }
 }

@@ -21,7 +21,7 @@ public record GetTaskDto(
         NewUserResponse author,
         Long categoryId,
         String categoryName,
-        List<String> TagNames
+        List<String> tagNames
 
 
         ) {

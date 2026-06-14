@@ -16,7 +16,7 @@ import java.util.List;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    List<Task> findByAuthor(User author);
+    List<Task> findByAuthorOrderByIdAsc(User author);
 
     List<Task> findByAuthorAndPriority(User author, Priority priority);
 

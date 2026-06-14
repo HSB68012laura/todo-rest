@@ -91,42 +91,6 @@ public class TaskController {
     }
 
     @Operation(
-            summary = "Obtener una tarea concreta",
-            description = "Permite obtener la una tarea concreta si se le proporciona un id"
-    )
-    @ApiResponse(description = "Información detallada de una tarea",
-            responseCode = "200",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = GetTaskDto.class),
-                    examples = {
-                            @ExampleObject("""
-                                    {
-                                             "id": 1,
-                                             "title": "Comprar alimentos",
-                                             "description": "Hacer una lista de compras para el supermercado.",
-                                             "createdAt": "2025-01-13T16:12:11.295172",
-                                             "deadline": "2025-01-20T16:12:11.295172",
-                                             "author": {
-                                                 "id": 1,
-                                                 "username": "pepe",
-                                                 "email": "pepe@openwebinars.net"
-                                             }
-                                         }
-                                """)
-                    }
-            )
-    )
-
-    @PostAuthorize("""
-            returnObject.author.username == authentication.principal.username
-            """)
-    @GetMapping("/{id}")
-    public GetTaskDto getById(@PathVariable Long id) {
-        return GetTaskDto.of(taskService.findById(id));
-    }
-
-    @Operation(
             summary = "Crear una tarea",
             description = "Permite crear una tarea asociada al usuario autenticado"
     )
@@ -171,68 +135,16 @@ public class TaskController {
             )
             @RequestBody EditTaskCommand cmd,
             @AuthenticationPrincipal User author
-            ) {
+    ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(GetTaskDto.of(taskService.save(cmd, author)));
-    }
-
-    @Operation(
-            summary = "Editar una tarea",
-            description = "Permite editar una tarea asociada al usuario autenticado si se proporciona su ID"
-    )
-    @ApiResponse(description = "Tarea editada",
-            responseCode = "200",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = GetTaskDto.class),
-                    examples = {
-                            @ExampleObject("""
-                                    {
-                                             "id": 1,
-                                             "title": "Comprar alimentos",
-                                             "description": "Hacer una lista de compras para el supermercado.",
-                                             "createdAt": "2025-01-13T16:12:11.295172",
-                                             "deadline": "2025-01-20T16:12:11.295172",
-                                             "author": {
-                                                 "id": 1,
-                                                 "username": "pepe",
-                                                 "email": "pepe@openwebinars.net"
-                                             }
-                                         }
-                                """)
-                    }
-            )
-    )
-
-    @PreAuthorize("""
-            @ownerCheck.check(#id, authentication.principal.getId())
-            """)
-    @PutMapping("/{id}")
-    public GetTaskDto edit(@RequestBody EditTaskCommand cmd,
-                     @PathVariable Long id) {
-        return GetTaskDto.of(taskService.edit(cmd, id));
-    }
-
-    @Operation(
-            summary = "Eliminar una tarea",
-            description = "Permite eliminar una tarea asociada al usuario autenticado si se proporciona su ID"
-    )
-    @ApiResponse(description = "Respuesta correcta de tarea eliminada",
-            responseCode = "204",
-            content = @Content(schema = @Schema(implementation = Void.class)))
-
-    @PreAuthorize("""
-            @ownerCheck.check(#id, authentication.principal.getId())
-            """)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        taskService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Dashboard con estadísticas de tareas")
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getDashboard(@AuthenticationPrincipal User author) {
+        System.out.println("=== DASHBOARD ===");
+        System.out.println("Usuario: " + author.getUsername());
         List<Task> tasks = taskService.findByAuthor(author);
 
         long total = tasks.size();
@@ -250,17 +162,46 @@ public class TaskController {
 
         return ResponseEntity.ok(stats);
     }
+    @GetMapping("/search")
+    public List<GetTaskDto> searchTasks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) Boolean completed,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long tagId,
+            @AuthenticationPrincipal User author) {
 
-    @Operation(summary = "Asignar un tag a una tarea")
-    @PostMapping("/{taskId}/tags/{tagId}")
-    public ResponseEntity<Task> addTagToTask(@PathVariable Long taskId, @PathVariable Long tagId, @AuthenticationPrincipal User author) {
-        return ResponseEntity.ok(taskService.addTagToTask(taskId, tagId, author));
-    }
+        System.out.println("=== BÚSQUEDA EN REST ===");
+        System.out.println("title: " + title);
+        System.out.println("priority: " + priority);
+        System.out.println("completed: " + completed);
+        System.out.println("categoryId: " + categoryId);
+        System.out.println("tagId: " + tagId);
 
-    @Operation(summary = "Eliminar un tag de una tarea")
-    @DeleteMapping("/{taskId}/tags/{tagId}")
-    public ResponseEntity<Task> removeTagFromTask(@PathVariable Long taskId, @PathVariable Long tagId, @AuthenticationPrincipal User author) {
-        return ResponseEntity.ok(taskService.removeTagFromTask(taskId, tagId, author));
+
+        if (tagId != null) {
+            return taskService.findTasksByTag(tagId, author).stream().map(GetTaskDto::of).toList();
+        }
+        if (categoryId != null) {
+            return taskService.findByCategory(author, categoryId).stream().map(GetTaskDto::of).toList();
+        }
+        if (priority != null && !priority.isEmpty()) {
+            return taskService.findByPriority(author, priority).stream().map(GetTaskDto::of).toList();
+        }
+        if (title != null && !title.isEmpty()) {
+            return taskService.findByTitle(author, title).stream().map(GetTaskDto::of).toList();
+        }
+        if ("true".equals(completed)) {
+            return taskService.findByCompleted(author, true).stream().map(GetTaskDto::of).toList();
+        }
+        if ("false".equals(completed)) {
+            return taskService.findByCompleted(author, false).stream().map(GetTaskDto::of).toList();
+        }
+        if ("overdue".equals(completed)) {
+            return taskService.findOverdueTasks(author).stream().map(GetTaskDto::of).toList();
+        }
+
+        return taskService.findByAuthor(author).stream().map(GetTaskDto::of).toList();
     }
 
     @Operation(summary = "Buscar tareas por tag")
@@ -296,5 +237,106 @@ public class TaskController {
         return taskService.findByTitle(author, title);
     }
 
+    @Operation(summary = "Asignar un tag a una tarea")
+    @PostMapping("/{taskId}/tags/{tagId}")
+    public ResponseEntity<Task> addTagToTask(@PathVariable Long taskId, @PathVariable Long tagId, @AuthenticationPrincipal User author) {
+        return ResponseEntity.ok(taskService.addTagToTask(taskId, tagId, author));
+    }
+
+    @Operation(summary = "Eliminar un tag de una tarea")
+    @DeleteMapping("/{taskId}/tags/{tagId}")
+    public ResponseEntity<Task> removeTagFromTask(@PathVariable Long taskId, @PathVariable Long tagId, @AuthenticationPrincipal User author) {
+        return ResponseEntity.ok(taskService.removeTagFromTask(taskId, tagId, author));
+    }
+
+    @Operation(
+            summary = "Editar una tarea",
+            description = "Permite editar una tarea asociada al usuario autenticado si se proporciona su ID"
+    )
+    @ApiResponse(description = "Tarea editada",
+            responseCode = "200",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = GetTaskDto.class),
+                    examples = {
+                            @ExampleObject("""
+                                    {
+                                             "id": 1,
+                                             "title": "Comprar alimentos",
+                                             "description": "Hacer una lista de compras para el supermercado.",
+                                             "createdAt": "2025-01-13T16:12:11.295172",
+                                             "deadline": "2025-01-20T16:12:11.295172",
+                                             "author": {
+                                                 "id": 1,
+                                                 "username": "pepe",
+                                                 "email": "pepe@openwebinars.net"
+                                             }
+                                         }
+                                """)
+                    }
+            )
+    )
+
+    @PreAuthorize("""
+            @ownerCheck.check(#id, authentication.principal.getId())
+            """)
+    @PutMapping("/{id}")
+    public GetTaskDto edit(@RequestBody EditTaskCommand cmd,
+                           @PathVariable Long id) {
+        return GetTaskDto.of(taskService.edit(cmd, id));
+    }
+
+    @Operation(
+            summary = "Eliminar una tarea",
+            description = "Permite eliminar una tarea asociada al usuario autenticado si se proporciona su ID"
+    )
+    @ApiResponse(description = "Respuesta correcta de tarea eliminada",
+            responseCode = "204",
+            content = @Content(schema = @Schema(implementation = Void.class)))
+
+    @PreAuthorize("""
+            @ownerCheck.check(#id, authentication.principal.getId())
+            """)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        taskService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Obtener una tarea concreta",
+            description = "Permite obtener la una tarea concreta si se le proporciona un id"
+    )
+    @ApiResponse(description = "Información detallada de una tarea",
+            responseCode = "200",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = GetTaskDto.class),
+                    examples = {
+                            @ExampleObject("""
+                                    {
+                                             "id": 1,
+                                             "title": "Comprar alimentos",
+                                             "description": "Hacer una lista de compras para el supermercado.",
+                                             "createdAt": "2025-01-13T16:12:11.295172",
+                                             "deadline": "2025-01-20T16:12:11.295172",
+                                             "author": {
+                                                 "id": 1,
+                                                 "username": "pepe",
+                                                 "email": "pepe@openwebinars.net"
+                                             }
+                                         }
+                                """)
+                    }
+            )
+    )
+
+    @PostAuthorize("""
+            returnObject.author.username == authentication.principal.username
+            """)
+    @GetMapping("/{id}")
+    public GetTaskDto getById(@PathVariable Long id) {
+        return GetTaskDto.of(taskService.findById(id));
+    }
 
 }

@@ -89,7 +89,7 @@ public class TaskService {
     }
 
     public List<Task> findByAuthor(User author) {
-        return taskRepository.findByAuthor(author);
+        return taskRepository.findByAuthorOrderByIdAsc(author);
     }
 
     public List<Task> findByPriority(User author, String priorityStr) {
@@ -151,7 +151,7 @@ public class TaskService {
         Tag tag = tagRepository.findById(tagId)
                 .orElseThrow(() -> new RuntimeException("Tag no encontrado"));
 
-        return taskRepository.findByAuthor(author).stream()
+        return taskRepository.findByAuthorOrderByIdAsc(author).stream()
                 .filter(task -> task.getTags().contains(tag))
                 .toList();
     }
